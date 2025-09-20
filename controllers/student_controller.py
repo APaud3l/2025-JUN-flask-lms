@@ -86,5 +86,25 @@ def create_student():
     except:
         return {"message": "Unexpected error occured."}
 
-# PUT/PATCH /id
 # DELETE /id
+@students_bp.route("/<int:student_id>", methods=["DELETE"])
+def delete_student(student_id):
+    # Find the student with id: SELECT * FROM student WHERE student_id=student_id
+    stmt = db.select(Student).where(Student.student_id == student_id)
+    student = db.session.scalar(stmt)
+    # if student exists:
+    if student:
+        # delete
+        # name = student.name
+        db.session.delete(student)
+        # commit
+        db.session.commit()
+        # return ack
+        return {"message": f"Student {student.name} deleted successfully."}
+    # else
+    else:
+        # return ack
+        return {"message": f"Student with id: {student_id} does not exist."}, 404
+
+
+# PUT/PATCH /id
