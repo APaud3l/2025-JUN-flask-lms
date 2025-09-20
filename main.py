@@ -4,6 +4,8 @@ from init import db
 import os
 # from dotenv import load_dotenv
 
+from controllers.cli_controller import db_commands
+
 # load_dotenv()
 
 def create_app():
@@ -14,4 +16,6 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URI")
 
     db.init_app(app)
+
+    app.register_blueprint(db_commands)
     return app
