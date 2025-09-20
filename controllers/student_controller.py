@@ -108,3 +108,30 @@ def delete_student(student_id):
 
 
 # PUT/PATCH /id
+@students_bp.route("/<int:student_id>", methods=["PUT", "PATCH"])
+def update_student(student_id):
+    try:
+        # Get the student from the database
+        # Define the stmt
+        stmt = db.select(Student).where(Student.student_id == student_id)
+        # Execute the statement
+        student = db.session.scalar(stmt)
+        # if the student exists
+        if student:
+            # fetch the info from the request body
+            body_data = request.get_json()
+            # make the changes, short circuit method
+            student.name = body_data.get("name",student.name)
+            student.email = body_data.get("email",student.email)
+            student.address = body_data.get("address", student.address)
+            # commit to the db
+            db.session.commit()
+            # ack
+            return jsonify(student_schema.dump(student))
+        # else
+        else:
+            # ack message
+            return {"message": f"Student with id: {student_id} does not exist."}, 404
+    except IntegrityError as err:
+            if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
+                return {"message": err.orig.diag.message_detail}, 409
