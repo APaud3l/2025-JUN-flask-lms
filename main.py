@@ -5,6 +5,7 @@ import os
 # from dotenv import load_dotenv
 
 from controllers.cli_controller import db_commands
+from controllers.student_controller import students_bp
 
 # load_dotenv()
 
@@ -18,4 +19,6 @@ def create_app():
     db.init_app(app)
 
     app.register_blueprint(db_commands)
+    app.register_blueprint(students_bp)
+
     return app
