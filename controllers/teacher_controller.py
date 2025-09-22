@@ -87,3 +87,23 @@ def create_teacher():
             return  {"message": "Integrity Error occured."}, 409
     except:
         return {"message": "Unexpected error occured."}
+    
+# DELETE /id
+@teachers_bp.route("/<int:teacher_id>", methods=["DELETE"])
+def delete_teacher(teacher_id):
+    # Find the teacher with id: SELECT * FROM teacher WHERE teacher_id=teacher_id
+    stmt = db.select(Teacher).where(Teacher.teacher_id == teacher_id)
+    teacher = db.session.scalar(stmt)
+    # if teacher exists:
+    if teacher:
+        # delete
+        # name = teacher.name
+        db.session.delete(teacher)
+        # commit
+        db.session.commit()
+        # return ack
+        return {"message": f"Teacher {teacher.name} deleted successfully."}
+    # else
+    else:
+        # return ack
+        return {"message": f"Teacher with id: {teacher_id} does not exist."}, 404
