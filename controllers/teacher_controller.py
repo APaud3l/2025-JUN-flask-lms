@@ -2,6 +2,9 @@ from flask import Blueprint, jsonify, request
 from init import db
 from models.teacher import Teacher, teacher_schema, teachers_schema
 
+from sqlalchemy.exc import IntegrityError
+from psycopg2 import errorcodes
+
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
 
 # CREATE - POST /
@@ -40,3 +43,47 @@ def get_a_teacher(teacher_id):
         return jsonify(data)
     else:
         return {"message": f"Teacher with id: {teacher_id} does not exist."}, 404
+    
+
+# POST /
+@teachers_bp.route("/", methods=["POST"])
+def create_teacher():
+    try:
+        # GET details from the REQUEST Body
+        body_data = request.get_json()
+        # Create a Teacher Object with the REQUEST Body data
+
+        # Method 1: Error handling for unique department constraint
+        # department = body_data.get("department")
+
+        # stmt = db.select(Teacher).where(Teacher.department == department)
+        # teacher = db.session.scalar(stmt)
+        # data = teacher_schema.dump(teacher)
+
+        # if data:
+        #     return {"message": f"The Teacher with department:{department} already exists."}, 409
+        
+        new_teacher = Teacher(
+            name = body_data.get("name"),
+            department = body_data.get("department"),
+            address = body_data.get("address")
+        )
+        # Add to the session
+        db.session.add(new_teacher)
+        # Commit the session
+        db.session.commit()
+        # Send ack
+        data = teacher_schema.dump(new_teacher)
+        return jsonify(data), 201
+    except IntegrityError as err:
+        # if int(err.orig.pgcode) == 23502: # not null violation
+        if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION: # not null violation
+            return {"message": f"Required field: {err.orig.diag.column_name} cannot be null."}, 409
+        
+        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
+            return {"message": err.orig.diag.message_detail}, 409
+        
+        else:
+            return  {"message": "Integrity Error occured."}, 409
+    except:
+        return {"message": "Unexpected error occured."}
