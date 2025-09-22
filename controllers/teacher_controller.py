@@ -25,3 +25,18 @@ def get_teachers():
         return jsonify(data)
     else:
         return {"message": "No records found. Add a teacher to get started."}, 404
+    
+# READ - GET /teacher_id
+@teachers_bp.route("/<int:teacher_id>")
+def get_a_teacher(teacher_id):
+    # Define the statement: SELECT * FROM teachers WHERE id = teacher_id;
+    stmt = db.select(Teacher).where(Teacher.teacher_id == teacher_id)
+    # Execute it
+    teacher = db.session.scalar(stmt)
+    # Serialise it
+    data = teacher_schema.dump(teacher)
+    if data:
+        # Return it
+        return jsonify(data)
+    else:
+        return {"message": f"Teacher with id: {teacher_id} does not exist."}, 404
