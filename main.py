@@ -1,9 +1,12 @@
-from flask import Flask
-
-from init import db
+# Built-in imports
 import os
+
+# Installed imports/packages
+from flask import Flask
 # from dotenv import load_dotenv
 
+# Imports within the files/ local imports
+from init import db
 from controllers.cli_controller import db_commands
 from controllers.student_controller import students_bp
 from controllers.teacher_controller import teachers_bp
