@@ -20,10 +20,10 @@ def get_teachers():
 
     if department:
         # Define the statement for GET All teacher: SELECT * FROM teachers WHERE department='something';
-        stmt = db.select(Teacher).where(Teacher.department == department)
+        stmt = db.select(Teacher).where(Teacher.department == department).order_by(Teacher.teacher_id)
     else:
         # Define the statement for GET All teacher: SELECT * FROM teachers
-        stmt = db.select(Teacher)
+        stmt = db.select(Teacher).order_by(Teacher.teacher_id)
     # Execute it
     teachers_list = db.session.scalars(stmt)
 
