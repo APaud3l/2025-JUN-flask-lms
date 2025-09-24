@@ -18,6 +18,8 @@ class TeacherSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Teacher
         load_instance = True
+        # define the exact order of keys
+        fields = ("teacher_id", "name", "department", "courses", "address")
     
     courses = fields.List(fields.Nested("CourseSchema", exclude=("teacher","teacher_id")))
 
@@ -29,6 +31,7 @@ class CourseSchema(SQLAlchemyAutoSchema):
         model = Course
         load_instace = True
         include_fk = True
+        fields = ("course_id", "name", "duration", "teacher", "teacher_id")
     
     teacher = fields.Nested("TeacherSchema", dump_only=True, only=("name", "department"))
 

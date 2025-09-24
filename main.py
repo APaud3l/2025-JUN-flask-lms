@@ -21,6 +21,9 @@ def create_app():
     # or 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URI")
 
+    # To keep the order of keys in JSON response
+    app.json.sort_keys = False
+
     db.init_app(app)
 
     app.register_blueprint(db_commands)
