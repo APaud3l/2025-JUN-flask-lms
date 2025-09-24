@@ -15,8 +15,15 @@ teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
 # READ - GET /
 @teachers_bp.route("/")
 def get_teachers():
-    # Define the statement for GET All teacher: SELECT * FROM teachers;
-    stmt = db.select(Teacher)
+    # Get the department name from the URL
+    department = request.args.get("department")
+
+    if department:
+        # Define the statement for GET All teacher: SELECT * FROM teachers WHERE department='something';
+        stmt = db.select(Teacher).where(Teacher.department == department)
+    else:
+        # Define the statement for GET All teacher: SELECT * FROM teachers
+        stmt = db.select(Teacher)
     # Execute it
     teachers_list = db.session.scalars(stmt)
 
