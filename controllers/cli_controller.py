@@ -2,6 +2,7 @@ from flask import Blueprint
 from init import db
 from models.student import Student
 from models.teacher import Teacher
+from models.course import Course
 
 db_commands = Blueprint("db", __name__)
 
@@ -18,16 +19,16 @@ def drop_tables():
 @db_commands.cli.command("seed")
 def seed_tables():
     # Create an instance of the Model
-    # students = [Student(
-    #     name="Alice",
-    #     email="alice@email.com",
-    #     address="Syd"
-    # ), Student(
-    #     name="Bob",
-    #     email="bob@email.com"
-    # )]
-    # # Add to the session
-    # db.session.add_all(students)
+    students = [Student(
+        name="Alice",
+        email="alice@email.com",
+        address="Syd"
+    ), Student(
+        name="Bob",
+        email="bob@email.com"
+    )]
+    # Add to the session
+    db.session.add_all(students)
 
     teachers = [
         Teacher(
@@ -40,9 +41,40 @@ def seed_tables():
             address="Bris"
         )
     ]
-
+    
     # Add the teachers info to the session
     db.session.add_all(teachers)
+
+    # Commit
+    db.session.commit()
+
+    courses = [
+        Course(
+            name="Physics",
+            duration=3,
+            teacher_id=teachers[0].teacher_id
+        ),
+                Course(
+            name="Chemistry",
+            duration=3,
+            teacher_id=teachers[0].teacher_id
+        ),        Course(
+            name="Biology",
+            duration=3,
+            teacher_id=teachers[0].teacher_id
+        ),        Course(
+            name="Mathematics",
+            duration=3,
+            teacher_id=teachers[1].teacher_id
+        ),        Course(
+            name="Accounting",
+            duration=3,
+            teacher_id=teachers[1].teacher_id
+        )
+    ]
+
+    # Add the courses info to the session
+    db.session.add_all(courses)
 
     # Commit
     db.session.commit()
