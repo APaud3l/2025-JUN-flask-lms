@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, request
-from init import db
-from models.teacher import Teacher, teacher_schema, teachers_schema
-
 from sqlalchemy.exc import IntegrityError
 from psycopg2 import errorcodes
+
+from init import db
+from models.teacher import Teacher
+from schemas.schemas import teacher_schema, teachers_schema
+
 
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
 

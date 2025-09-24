@@ -1,5 +1,4 @@
 from init import db
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 class Course(db.Model):
     __tablename__ = "courses"
@@ -11,11 +10,6 @@ class Course(db.Model):
     # Foreign key
     teacher_id = db.Column(db.Integer, db.ForeignKey("teachers.teacher_id"), nullable=False)
 
-class CourseSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Course
-        load_instace = True
-        include_fk = True
-
-course_schema = CourseSchema()
-courses_schema = CourseSchema(many=True)
+    # back_populates
+    teacher = db.relationship("Teacher", back_populates="courses")
+    #back_refs
