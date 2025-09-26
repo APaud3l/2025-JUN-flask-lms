@@ -27,6 +27,25 @@ def get_courses():
 
 
 # READ a course - GET /course_id
+@courses_bp.route("/<int:course_id>")
+def get_a_course(course_id):
+    # Define the statement
+    # SQL: SELECT * FROM courses WHERE course_id = course_id;
+    stmt = db.select(Course).where(Course.course_id == course_id)
+    # excute it
+    course = db.session.scalar(stmt)
+    # serialise it
+    data = course_schema.dump(course)
+
+    # if the course exists
+    if data:
+        # return it
+        return jsonify(data)
+    # else
+    else:
+        # ack
+        return {"message": f"Course with id: {course_id} does not exist"}, 404
+
 # CREATE - POST /
 # DELETE - DELETE /course_id
 # UPDAET - PUT/PATCH /course_id
