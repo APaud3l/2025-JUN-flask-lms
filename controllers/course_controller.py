@@ -82,6 +82,28 @@ def create_course():
     except:
         return {"message": "Unexpected error occured."}, 400
         
-
 # DELETE - DELETE /course_id
-# UPDAET - PUT/PATCH /course_id
+@courses_bp.route("/<int:course_id>", methods=["DELETE"])
+def delete_course(course_id):
+    # Find the course to delete
+    # stmt = db.select(Course).filter_by(course_id = course_id)
+    # Define the stmt
+    stmt = db.select(Course).where(Course.course_id == course_id)
+    # Execute it
+    course = db.session.scalar(stmt)
+    # Serialise it
+    data = course_schema.dump(course)
+    # If the course exists
+    if data:
+        # delete
+        db.session.delete(course)
+        # commit
+        db.session.commit()
+        # Acknowledge
+        return {"message": f"Course with name: {course.name} deleted successfully."}
+    # Else:
+    else:
+        # Ack
+        return {"message": f"Course with id: {course_id} cannot be found."}, 404
+
+# UPDATE - PUT/PATCH /course_id
