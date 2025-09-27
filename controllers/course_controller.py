@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, DataError
 from psycopg2 import errorcodes
 
 from init import db
@@ -107,3 +107,44 @@ def delete_course(course_id):
         return {"message": f"Course with id: {course_id} cannot be found."}, 404
 
 # UPDATE - PUT/PATCH /course_id
+@courses_bp.route("/<int:course_id>", methods=["PUT", "PATCH"])
+def update_a_course(course_id):
+    try:
+        # Find the course from the db
+        stmt = db.select(Course).where(Course.course_id == course_id)
+        course = db.session.scalar(stmt)
+
+        data = course_schema.dump(course)
+        # if it exists:
+        if data:
+            # Get the data to update from the request body
+            body_data = request.get_json()
+            # make the changes
+            course.name = body_data.get("name") or course.name
+            course.duration = body_data.get("duration") or course.duration
+            course.teacher_id = body_data.get("teacher_id") or course.teacher_id
+            # commit
+            db.session.commit()
+            # return the response
+            return jsonify(course_schema.dump(course))
+        # else:
+        else:
+            # ack
+            return {"message": f"Course with id {course_id} does not exist."}, 404
+    except IntegrityError as err:
+        # if int(err.orig.pgcode) == 23502: # not null violation
+        if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION: # not null violation
+            return {"message": f"Required field: {err.orig.diag.column_name} cannot be null."}, 409
+        
+        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
+            return {"message": err.orig.diag.message_detail}, 409
+        
+        if err.orig.pgcode == errorcodes.FOREIGN_KEY_VIOLATION: # foreign key violation
+            # return {"message": err.orig.diag.message_detail}, 409
+            return {"message": "Invalid teacher selected."}, 409
+        else:
+            return  {"message": "Integrity Error occured."}, 409
+    except DataError as err:
+        return {"message": f"{err.orig.diag.message_primary}"}, 409
+    except:
+        return {"message": "Unexpected error occured."}, 400  
