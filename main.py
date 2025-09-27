@@ -3,7 +3,7 @@ import os
 
 # Installed imports/packages
 from flask import Flask
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 # Imports within the files/ local imports
 from init import db
@@ -12,14 +12,14 @@ from controllers.student_controller import students_bp
 from controllers.teacher_controller import teachers_bp
 from controllers.course_controller import courses_bp
 
-# load_dotenv()
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
     print("Flask server started.")
-    # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
     # or 
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URI")
+    # app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URI")
 
     # To keep the order of keys in JSON response
     app.json.sort_keys = False
