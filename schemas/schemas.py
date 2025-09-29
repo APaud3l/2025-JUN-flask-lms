@@ -10,6 +10,8 @@ class StudentSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Student
         load_instance = True
+        # define the order in which the key value pair is displayed
+        fields = ("student_id", "name", "email", "enrolments", "address")
     
     enrolments = fields.List(fields.Nested("EnrolmentSchema", exclude=("student",)))
 
