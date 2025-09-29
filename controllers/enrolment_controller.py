@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request
+from sqlalchemy.exc import IntegrityError, DataError
+from psycopg2 import errorcodes
 
 from init import db
 from models.enrolment import Enrolment
@@ -37,3 +39,36 @@ def get_enrolments():
     else:
         return {"message": "No enrolments found."}, 404
     
+# CREATE - POST /
+@enrolments_bp.route("/", methods=["POST"])
+def create_enrolment():
+    try:
+        # Get the data from the Request Body
+        body_data = request.get_json()
+        # Create a enrolment instance
+        new_enrolment = Enrolment(
+            course_id = body_data.get("course_id"),
+            student_id = body_data.get("student_id"),
+            enrolment_date = body_data.get("enrolment_date")
+        )
+        # Add to the session
+        db.session.add(new_enrolment)
+        # Commit it
+        db.session.commit()
+        # Return the response
+        return jsonify(enrolment_schema.dump(new_enrolment)), 201
+    except IntegrityError as err:
+        # if int(err.orig.pgcode) == 23502: # not null violation
+        if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION: # not null violation
+            return {"message": f"Required field: {err.orig.diag.column_name} cannot be null."}, 409
+        
+        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
+            return {"message": err.orig.diag.message_detail}, 409
+        
+        if err.orig.pgcode == errorcodes.FOREIGN_KEY_VIOLATION: # foreign key violation
+            # return {"message": err.orig.diag.message_detail}, 409
+            return {"message": err.orig.diag.message_detail}, 409
+        else:
+            return  {"message": "Integrity Error occured."}, 409
+    except:
+        return {"message": "Unexpected error occured."}, 400
