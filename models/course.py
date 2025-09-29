@@ -12,4 +12,4 @@ class Course(db.Model):
 
     # back_populates
     teacher = db.relationship("Teacher", back_populates="courses")
-    #back_refs
+    enrolments = db.relationship("Enrolment", back_populates="course")
