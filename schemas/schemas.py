@@ -50,7 +50,7 @@ class EnrolmentSchema(SQLAlchemyAutoSchema):
         model = Enrolment
         load_instance = True
         include_fk = True
-        fields = ("id", "enrolment_date", "student_id", "course_id", "student", "course")
+        fields = ("id", "enrolment_date", "student", "course")
     
     student = fields.Nested("StudentSchema", only=("student_id", "name"))
     course = fields.Nested("CourseSchema", only=("course_id", "name", "duration"))
