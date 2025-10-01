@@ -1,4 +1,5 @@
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
+from marshmallow.validate import Length, Regexp, Range
 from marshmallow import fields
 
 from models.student import Student
@@ -37,6 +38,16 @@ class CourseSchema(SQLAlchemyAutoSchema):
         load_instace = True
         include_fk = True
         fields = ("course_id", "name", "duration", "teacher", "teacher_id", "enrolments")
+
+    # name: cannot be blank, starts with letter, allows letters/numbers/spaces
+    name = auto_field(validate=[
+        Length(min=3, max=50, error="Course Name cannot be less than 3 or more than 50 characters in length."),
+        Regexp(r"^[A-Za-z][A-Za-z0-9 ]*$", error="Name must start with a letter and must contain only letters, numbers or spaces.")
+    ])
+    
+    duration = auto_field(validate=[
+        Range(min=1, min_inclusive=True, error="Duration must be greater or equal to 1.")
+    ])
     
     teacher = fields.Nested("TeacherSchema", dump_only=True, only=("name", "department"))
     enrolments = fields.List(fields.Nested("EnrolmentSchema", exclude=("course",)))
