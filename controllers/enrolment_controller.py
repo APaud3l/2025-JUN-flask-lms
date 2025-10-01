@@ -47,7 +47,7 @@ def create_enrolment():
         body_data = request.get_json()
         # Create a enrolment instance
         new_enrolment = Enrolment(
-            course_id = body_data.get("course_id"),
+            enrolment_id = body_data.get("enrolment_id"),
             student_id = body_data.get("student_id"),
             enrolment_date = body_data.get("enrolment_date")
         )
@@ -96,3 +96,46 @@ def delete_enrolment(enrolment_id):
     else:
         # Ack
         return {"message": f"Enrolment with id: {enrolment_id} cannot be found."}, 404
+
+# UPDATE - PUT/PATCH /enrolment_id
+@enrolments_bp.route("/<int:enrolment_id>", methods=["PUT", "PATCH"])
+def update_an_enrolment(enrolment_id):
+    try:
+        # Find the enrolment from the db
+        stmt = db.select(Enrolment).where(Enrolment.id == enrolment_id)
+        enrolment = db.session.scalar(stmt)
+
+        data = enrolment_schema.dump(enrolment)
+        # if it exists:
+        if data:
+            # Get the data to update from the request body
+            body_data = request.get_json()
+            # make the changes
+            enrolment.student_id = body_data.get("student_id") or enrolment.student_id
+            enrolment.course_id = body_data.get("course_id") or enrolment.course_id
+            enrolment.enrolment_date = body_data.get("enrolment_date") or enrolment.enrolment_date
+            # commit
+            db.session.commit()
+            # return the response
+            return jsonify(enrolment_schema.dump(enrolment))
+        # else:
+        else:
+            # ack
+            return {"message": f"Enrolment with id {enrolment_id} does not exist."}, 404
+    except IntegrityError as err:
+        # if int(err.orig.pgcode) == 23502: # not null violation
+        if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION: # not null violation
+            return {"message": f"Required field: {err.orig.diag.column_name} cannot be null."}, 409
+        
+        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
+            return {"message": err.orig.diag.message_detail}, 409
+        
+        if err.orig.pgcode == errorcodes.FOREIGN_KEY_VIOLATION: # foreign key violation
+            # return {"message": err.orig.diag.message_detail}, 409
+            return {"message": f"{err.orig.diag.message_primary}"}, 409
+        else:
+            return  {"message": "Integrity Error occured."}, 409
+    except DataError as err:
+        return {"message": f"{err.orig.diag.message_primary}"}, 409
+    except:
+        return {"message": "Unexpected error occured."}, 400  
