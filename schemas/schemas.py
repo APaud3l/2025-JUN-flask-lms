@@ -1,5 +1,5 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from marshmallow.validate import Length, Regexp, Range
+from marshmallow.validate import Length, Regexp, Range, OneOf
 from marshmallow import fields
 
 from models.student import Student
@@ -26,6 +26,12 @@ class TeacherSchema(SQLAlchemyAutoSchema):
         load_instance = True
         # define the exact order of keys
         fields = ("teacher_id", "name", "department", "courses", "address")
+    
+    # The valid department values: Science, Management, Engineering
+    department = auto_field(validate=OneOf(
+        ["Science", "Management", "Engineering"],
+        error="Only valid departments are: Science, Management, Engineering"
+        ))
     
     courses = fields.List(fields.Nested("CourseSchema", exclude=("teacher","teacher_id")))
 

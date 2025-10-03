@@ -53,20 +53,35 @@ def get_a_course(course_id):
 @courses_bp.route("/", methods=["POST"])
 def create_course():
     try:
-        # Get the data from the Request Body
-        body_data = request.get_json()
-        # Create a course instance
-        new_course = Course(
-            name = body_data.get("name"),
-            duration = body_data.get("duration"),
-            teacher_id = body_data.get("teacher_id")
+        # Step by step methodical approach
+        
+        # # Get the data from the Request Body
+        # body_data = request.get_json()
+        # # Create a course instance
+        # new_course = Course(
+        #     name = body_data.get("name"),
+        #     duration = body_data.get("duration"),
+        #     teacher_id = body_data.get("teacher_id")
+        # )
+        # # Add to the session
+        # db.session.add(new_course)
+
+        ########################################        
+        # schema.dump approach
+        # Use the Marshmallow to validate + create the course
+        new_course = course_schema.load(
+            request.get_json(),
+            session=db.session
         )
         # Add to the session
         db.session.add(new_course)
-        # Commit it
+        
+        # commit it
         db.session.commit()
         # Return the response
         return jsonify(course_schema.dump(new_course)), 201
+    except ValidationError as err:
+        return err.messages, 400
     except IntegrityError as err:
         # if int(err.orig.pgcode) == 23502: # not null violation
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION: # not null violation
@@ -80,7 +95,8 @@ def create_course():
             return {"message": "Invalid teacher selected."}, 409
         else:
             return  {"message": "Integrity Error occured."}, 409
-    except:
+    except Exception as err:
+        print(f"{err}")
         return {"message": "Unexpected error occured."}, 400
         
 # DELETE - DELETE /course_id
