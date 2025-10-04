@@ -52,7 +52,7 @@ def get_a_course(course_id):
 # CREATE - POST /
 @courses_bp.route("/", methods=["POST"])
 def create_course():
-    try:
+    # try:
         # Step by step methodical approach
         
         # # Get the data from the Request Body
@@ -69,35 +69,51 @@ def create_course():
         ########################################        
         # schema.dump approach
         # Use the Marshmallow to validate + create the course
-        new_course = course_schema.load(
-            request.get_json(),
-            session=db.session
-        )
-        # Add to the session
-        db.session.add(new_course)
+    #     new_course = course_schema.load(
+    #         request.get_json(),
+    #         session=db.session
+    #     )
+    #     # Add to the session
+    #     db.session.add(new_course)
         
-        # commit it
-        db.session.commit()
-        # Return the response
-        return jsonify(course_schema.dump(new_course)), 201
-    except ValidationError as err:
-        return err.messages, 400
-    except IntegrityError as err:
-        # if int(err.orig.pgcode) == 23502: # not null violation
-        if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION: # not null violation
-            return {"message": f"Required field: {err.orig.diag.column_name} cannot be null."}, 409
+    #     # commit it
+    #     db.session.commit()
+    #     # Return the response
+    #     return jsonify(course_schema.dump(new_course)), 201
+    # except ValidationError as err:
+    #     return err.messages, 400
+    # except IntegrityError as err:
+    #     # if int(err.orig.pgcode) == 23502: # not null violation
+    #     if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION: # not null violation
+    #         return {"message": f"Required field: {err.orig.diag.column_name} cannot be null."}, 409
         
-        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
-            return {"message": err.orig.diag.message_detail}, 409
+    #     if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
+    #         return {"message": err.orig.diag.message_detail}, 409
         
-        if err.orig.pgcode == errorcodes.FOREIGN_KEY_VIOLATION: # foreign key violation
-            # return {"message": err.orig.diag.message_detail}, 409
-            return {"message": "Invalid teacher selected."}, 409
-        else:
-            return  {"message": "Integrity Error occured."}, 409
-    except Exception as err:
-        print(f"{err}")
-        return {"message": "Unexpected error occured."}, 400
+    #     if err.orig.pgcode == errorcodes.FOREIGN_KEY_VIOLATION: # foreign key violation
+    #         # return {"message": err.orig.diag.message_detail}, 409
+    #         return {"message": "Invalid teacher selected."}, 409
+    #     else:
+    #         return  {"message": "Integrity Error occured."}, 409
+    # except Exception as err:
+    #     print(f"{err}")
+    #     return {"message": "Unexpected error occured."}, 400
+    
+    #######################################################
+    # Implementing Global Error handlers
+    # Get the request body data values
+    body_data = request.get_json()
+    # Validate and create a course
+    new_course = course_schema.load(
+        body_data,
+        session=db.session
+    )
+    # Add to the session
+    db.session.add(new_course)
+    # Commit it 
+    db.session.commit()
+    # Return the newly created course
+    return course_schema.dump(new_course), 201
         
 # DELETE - DELETE /course_id
 @courses_bp.route("/<int:course_id>", methods=["DELETE"])

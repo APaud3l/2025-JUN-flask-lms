@@ -12,6 +12,7 @@ from controllers.student_controller import students_bp
 from controllers.teacher_controller import teachers_bp
 from controllers.course_controller import courses_bp
 from controllers.enrolment_controller import enrolments_bp
+from utils.error_handlers import register_error_handlers
 
 load_dotenv()
 
@@ -33,4 +34,5 @@ def create_app():
     app.register_blueprint(courses_bp)
     app.register_blueprint(enrolments_bp)
 
+    register_error_handlers(app)
     return app
