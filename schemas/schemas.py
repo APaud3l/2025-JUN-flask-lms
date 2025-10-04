@@ -34,7 +34,7 @@ class TeacherSchema(SQLAlchemyAutoSchema):
         ))
     
     courses = fields.List(fields.Nested("CourseSchema", exclude=("teacher","teacher_id")))
-
+    
 teacher_schema = TeacherSchema()
 teachers_schema = TeacherSchema(many=True)
 

@@ -132,28 +132,52 @@ def delete_teacher(teacher_id):
 # PUT/PATCH /id
 @teachers_bp.route("/<int:teacher_id>", methods=["PUT", "PATCH"])
 def update_teacher(teacher_id):
+    # Method 1: In this method, we work on the update feature in a step-by-step approach (thorough)
+    # try:
+    #     # Get the teacher from the database
+    #     # Define the stmt
+    #     stmt = db.select(Teacher).where(Teacher.teacher_id == teacher_id)
+    #     # Execute the statement
+    #     teacher = db.session.scalar(stmt)
+    #     # if the teacher exists
+    #     if teacher:
+    #         # fetch the info from the request body
+    #         body_data = request.get_json()
+    #         # make the changes, short circuit method
+    #         teacher.name = body_data.get("name",teacher.name)
+    #         teacher.department = body_data.get("department",teacher.department)
+    #         teacher.address = body_data.get("address", teacher.address)
+    #         # commit to the db
+    #         db.session.commit()
+    
+    # Method 2: Here, we are implementing the schema.load() feature for some automation
+    # Get the teacher to update
+    teacher = db.session.get(Teacher, teacher_id)
+    # If the teacher does not exist:
+    if not teacher:
+        # Send an error message
+        return {"message": f"The teacher with id: {teacher_id} does not exist."}, 404
+    
+    # try:
     try:
-        # Get the teacher from the database
-        # Define the stmt
-        stmt = db.select(Teacher).where(Teacher.teacher_id == teacher_id)
-        # Execute the statement
-        teacher = db.session.scalar(stmt)
-        # if the teacher exists
-        if teacher:
-            # fetch the info from the request body
-            body_data = request.get_json()
-            # make the changes, short circuit method
-            teacher.name = body_data.get("name",teacher.name)
-            teacher.department = body_data.get("department",teacher.department)
-            teacher.address = body_data.get("address", teacher.address)
-            # commit to the db
-            db.session.commit()
-            # ack
-            return jsonify(teacher_schema.dump(teacher))
+        # getting the body data
+        body_data = request.get_json()
+        # Validate and Update the values
+        teacher = teacher_schema.load(
+            body_data,
+            instance=teacher,
+            session=db.session,
+            partial=True
+        )
+        # commit 
+        db.session.commit()
+        # ack   
+        return jsonify(teacher_schema.dump(teacher))
         # else
-        else:
-            # ack message
-            return {"message": f"Teacher with id: {teacher_id} does not exist."}, 404
+    
+    except ValidationError as err:
+        return err.messages, 400
+    
     except IntegrityError as err:
             if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: # unique violation
                 return {"message": err.orig.diag.message_detail}, 409
