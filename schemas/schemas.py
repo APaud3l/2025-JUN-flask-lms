@@ -1,6 +1,6 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from marshmallow.validate import Length, Regexp, Range, OneOf
-from marshmallow import fields
+from marshmallow import fields, ValidationError, validates
 
 from models.student import Student
 from models.teacher import Teacher
@@ -34,7 +34,7 @@ class TeacherSchema(SQLAlchemyAutoSchema):
         ))
     
     courses = fields.List(fields.Nested("CourseSchema", exclude=("teacher","teacher_id")))
-    
+
 teacher_schema = TeacherSchema()
 teachers_schema = TeacherSchema(many=True)
 
@@ -51,9 +51,18 @@ class CourseSchema(SQLAlchemyAutoSchema):
         Regexp(r"^[A-Za-z][A-Za-z0-9 ]*$", error="Name must start with a letter and must contain only letters, numbers or spaces.")
     ])
     
-    duration = auto_field(validate=[
-        Range(min=1, min_inclusive=True, error="Duration must be greater or equal to 1.")
-    ])
+    # Method 1: use "validate" argument/parameter
+    # duration = auto_field(validate=[
+    #     Range(min=1, min_inclusive=True, error="Duration must be greater or equal to 1.")
+    # ])
+    
+    # Method 2: use @validates decorator
+    # @validates('property-to-validate')
+    # def fn_name(self, property-to-validate, data_key)
+    @validates('duration')
+    def validates_duration(self, duration, data_key):
+        if duration <= 1:
+            raise ValidationError("Duration cannot be less than 1.")
     
     teacher = fields.Nested("TeacherSchema", dump_only=True, only=("name", "department"))
     enrolments = fields.List(fields.Nested("EnrolmentSchema", exclude=("course",)))
